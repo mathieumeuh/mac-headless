@@ -1,0 +1,15 @@
+# Secrets / environment
+.env
+*.env
+pihole/compose.yml
+
+# Docker/application data
+postgres/
+data/
+media/
+redisdata/
+consume/
+export/
+etc-pihole/
+# OS
+.DS_Store
