@@ -38,7 +38,7 @@ services:
     environment:
       POSTGRES_DB: paperless
       POSTGRES_USER: paperless
-      POSTGRES_PASSWORD: EqIyWdH3ptCJahYHwLB48HOFtUFxJlnV
+      POSTGRES_PASSWORD: change-me
   webserver:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     restart: unless-stopped
