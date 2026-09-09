@@ -1,0 +1,166 @@
+services:
+  
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - ./config:/config
+      - ./music:/music
+      - ./downloads:/downloads
+    ports:
+      - "8686:8686"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - ./prowlarr:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+ 
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "8080:8080"
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=
+      - WIREGUARD_PUBLIC_KEY=key
+      - VPN_ENDPOINT_IP=
+      - VPN_ENDPOINT_PORT=
+      - VPN_DNS_ADDRESS=
+      - WIREGUARD_ALLOWED_IPS=      
+    restart: unless-stopped
+  
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - WEBUI_PORT=8080
+    volumes:
+      - ./qbittorrent:/config
+      - ./downloads:/downloads
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Paris
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    volumes:
+      - ./jellyfin:/config
+      - ./music:/music:ro
+      - ./movies:/movies:ro
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellyfin.rule=Host(`meuhfin.home`)"
+      - "traefik.http.routers.jellyfin.entrypoints=web"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.docker.network=proxy"
+
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    environment:
+      - ND_SCANSCHEDULE=1h
+      - ND_LOGLEVEL=info
+      - ND_MUSICFOLDER=/music
+      - ND_DATAFOLDER=/data
+      - ND_LASTFM_ENABLED=false
+    volumes:
+      - ./navidrome:/data
+      - ./music:/music:ro
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.navidrome.rule=Host(`navidrome.home`)"
+      - "traefik.http.routers.navidrome.entrypoints=web"
+      - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
+      - "traefik.docker.network=proxy"
+  #film
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - ./radarr:/config
+      - ./movies:/movies
+      - ./downloads:/downloads
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - ./seerr:/app/config
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.seerr.rule=Host(`seerr.home`)"
+      - "traefik.http.routers.seerr.entrypoints=web"
+      - "traefik.http.services.seerr.loadbalancer.server.port=5055"
+      - "traefik.docker.network=proxy"
+
+  musicseerr:
+    image: ghcr.io/habirabbu/musicseerr:latest
+    container_name: musicseerr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - PORT=8688
+      - TZ=Europe/Paris
+    volumes:
+      - ./musicseerr/config:/app/config
+      - ./musicseerr/cache:/app/cache
+      - ./music:/music:ro
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.musicseerr.rule=Host(`musicseerr.home`)"
+      - "traefik.http.routers.musicseerr.entrypoints=web"
+      - "traefik.http.services.musicseerr.loadbalancer.server.port=8688"
+      - "traefik.docker.network=proxy"
+
+networks:
+  proxy:
+    external: true
+

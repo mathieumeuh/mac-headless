@@ -2,7 +2,10 @@
 .env
 *.env
 pihole/compose.yml
-
+paperless/docker-compose.yml
+paperless/media-migration
+paperless/data-migration
+spotimeuh/docker-compose.yml
 # Docker/application data
 postgres/
 data/
@@ -11,5 +14,17 @@ redisdata/
 consume/
 export/
 etc-pihole/
+config/
+downloads/
+music/
+musicseerr/
+seerr/
+prowlarr/
+radarr/
+qbittorrent/
+jellyfin/
+navidrome/
+movies/
+
 # OS
 .DS_Store
