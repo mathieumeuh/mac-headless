@@ -268,26 +268,39 @@ Internet
 
 Les applications ne sont donc **pas publiées directement sur Internet**. L'accès aux services passe par le VPN WireGuard.
 
-Applications ARR déployées
 
-Le projet repose sur une stack d'automatisation multimédia basée sur les applications ARR, avec une séparation entre gestion des médias, recherche, téléchargement et lecture.
 
-Musique
-Lidarr — gestion et automatisation de la bibliothèque musicale
-MusicSeerr — interface de recherche et de demande de musique
-Navidrome — serveur de streaming musical
-Films
-Radarr — gestion et automatisation de la bibliothèque de films
-Seerr — interface de recherche et de demande de films
-Jellyfin — serveur de streaming vidéo
-Séries
-Sonarr — gestion et automatisation de la bibliothèque de séries (prévu)
-Recherche et téléchargement
-Prowlarr — gestion centralisée des indexeurs et synchronisation avec Lidarr, Radarr et Sonarr
-qBittorrent — client de téléchargement
-Gluetun — conteneur VPN ; qBittorrent utilise son réseau afin que son trafic sorte via le VPN
-FlareSolverr — service auxiliaire utilisé par certains indexeurs nécessitant une résolution de challenge anti-bot
-Architecture
+
+# Applications ARR déployées
+
+Le projet repose sur une stack d'automatisation multimédia basée sur les applications **ARR**, avec une séparation entre gestion des médias, recherche, téléchargement et lecture.
+
+### Musique
+
+* **Lidarr** — gestion et automatisation de la bibliothèque musicale
+* **MusicSeerr** — interface de recherche et de demande de musique
+* **Navidrome** — serveur de streaming musical
+
+### Films
+
+* **Radarr** — gestion et automatisation de la bibliothèque de films
+* **Seerr** — interface de recherche et de demande de films
+* **Jellyfin** — serveur de streaming vidéo
+
+### Séries
+
+* **Sonarr** — gestion et automatisation de la bibliothèque de séries *(prévu)*
+
+### Recherche et téléchargement
+
+* **Prowlarr** — gestion centralisée des indexeurs et synchronisation avec Lidarr, Radarr et Sonarr
+* **qBittorrent** — client de téléchargement
+* **Gluetun** — conteneur VPN ; qBittorrent utilise son réseau afin que son trafic sorte via le VPN
+* **FlareSolverr** — service auxiliaire utilisé par certains indexeurs nécessitant une résolution de challenge anti-bot
+
+### Architecture
+
+```text
                          ┌──────────────┐
                          │ MusicSeerr   │
                          └──────┬───────┘
@@ -329,22 +342,64 @@ Architecture
        │                         │
        └─────────────────────────┘
                               /movies
-Réseau
+```
+
+### Réseau
 
 Les services accessibles via l'interface web sont intégrés au réseau Docker externe :
 
+```yaml
 networks:
   proxy:
     external: true
+```
 
-Ils sont exposés localement via Traefik avec des domaines en .home.
-j'ai ajouté sur mon /etc/hosts les lignes "127.0.0.1 jellyfin.home" par exemple pour routage en local, sinon le dns ne pouvait le résoudre.
+Ils sont exposés localement via **Traefik** avec des domaines en `.home`.
 
 Exemples :
 
+```text
 lidarr.home
 radarr.home
 navidrome.home
-meuhfin.home
+jellyfin.home
 seerr.home
 musicseerr.home
+```
+
+### Flux général
+
+**Musique :**
+
+```text
+MusicSeerr
+    ↓
+Lidarr
+    ↓
+Prowlarr
+    ↓
+qBittorrent
+    ↓
+/music
+    ↓
+Navidrome
+```
+
+**Films :**
+
+```text
+Seerr
+    ↓
+Radarr
+    ↓
+Prowlarr
+    ↓
+qBittorrent
+    ↓
+/movies
+    ↓
+Jellyfin
+```
+
+Le téléchargement est isolé derrière **Gluetun/VPN** lorsque qBittorrent est utilisé.
+
