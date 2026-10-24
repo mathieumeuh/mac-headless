@@ -20,7 +20,7 @@ services:
       # Do not edit the next line. If you want to change the media storage location on your system, edit the value of UPLOAD_LOCATION in the .env file
       - ${UPLOAD_LOCATION}:/data
       - /etc/localtime:/etc/localtime:ro
-      - /Users/mathieu/photos_mac:/external/photos:ro
+     # - /Users/mathieu/photos_mac:/external/photos:ro
     env_file:
       - .env
     depends_on:
@@ -35,7 +35,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.immich.rule=Host(`immich.home`)"
-      - "traefik.http.routers.immich.entrypoints=web"
+      - "traefik.http.routers.immich.entrypoints=websecure"
+      - "traefik.http.routers.immich.tls=true"
       - "traefik.http.services.immich.loadbalancer.server.port=2283"
       - "traefik.docker.network=proxy"
   immich-machine-learning:

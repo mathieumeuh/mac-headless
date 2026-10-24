@@ -1,0 +1,45 @@
+services:
+  homeserver:
+    image: forgejo.ellis.link/continuwuation/continuwuity:latest
+    container_name: continuwuity
+    restart: unless-stopped
+
+    command: /sbin/conduwuit
+
+    volumes:
+      - db:/var/lib/continuwuity
+
+    networks:
+      - proxy
+
+    environment:
+      CONTINUWUITY_SERVER_NAME: change_me
+      CONTINUWUITY_DATABASE_PATH: /var/lib/continuwuity
+      CONTINUWUITY_ADDRESS: 0.0.0.0
+      CONTINUWUITY_PORT: 8008
+
+      # Matrix client + federation
+      CONTINUWUITY_WELL_KNOWN: |
+        {
+          client=https://change_me,
+          server=risitas.fr:443
+        }
+
+    labels:
+      - "traefik.enable=true"
+
+      # Matrix / Continuwuity
+      - "traefik.http.routers.matrix.rule=Host(`change_me`)"
+      - "traefik.http.routers.matrix.entrypoints=websecure"
+      - "traefik.http.routers.matrix.tls=true"
+      - "traefik.http.routers.matrix.tls.certresolver=letsencrypt"
+
+      # Continuwuity écoute en interne sur 8008
+      - "traefik.http.services.matrix.loadbalancer.server.port=8008"
+
+volumes:
+  db:
+
+networks:
+  proxy:
+    external: true

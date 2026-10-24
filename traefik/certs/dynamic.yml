@@ -1,0 +1,19 @@
+http:
+  routers:
+    jellyfin:
+      rule: "Host(`meuhfin.home`)"
+      entryPoints:
+        - websecure
+      service: jellyfin
+      tls: {}
+
+  services:
+    jellyfin:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.13:8096"
+
+tls:
+  certificates:
+    - certFile: /certs/home.pem
+      keyFile: /certs/home-key.pem

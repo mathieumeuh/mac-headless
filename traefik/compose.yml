@@ -7,23 +7,62 @@ services:
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.file.directory=/certs"
+      - "--providers.file.watch=true"
+      # Let's Encrypt
+      - "--certificatesresolvers.letsencrypt.acme.email=ilusio@hotmail.fr"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/certs/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
 
     ports:
       - "80:80"
+      - "443:443"
 
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/certs:rw
 
     networks:
       - proxy
+      - docker-socket
 
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.home`)"
       - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls=true"
+
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.4.2
+    container_name: docker-socket-proxy
+    restart: unless-stopped
+
+    environment:
+      CONTAINERS: "1"
+      EVENTS: "1"
+      PING: "1"
+      VERSION: "1"
+      NETWORKS: "1"
+      INFO: "1"
+      POST: "0"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - docker-socket
+
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   proxy:
     external: true
+
+  docker-socket:
+    internal: true

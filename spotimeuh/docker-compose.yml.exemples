@@ -41,12 +41,12 @@ services:
       - VPN_SERVICE_PROVIDER=custom
       - VPN_TYPE=wireguard
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
-      - WIREGUARD_ADDRESSES=
-      - WIREGUARD_PUBLIC_KEY=key
-      - VPN_ENDPOINT_IP=
-      - VPN_ENDPOINT_PORT=
-      - VPN_DNS_ADDRESS=
-      - WIREGUARD_ALLOWED_IPS=      
+      - WIREGUARD_ADDRESSES=10.70.168.233/32
+      - WIREGUARD_PUBLIC_KEY=change_me
+      - VPN_ENDPOINT_IP=45.134.212.66
+      - VPN_ENDPOINT_PORT=51820
+      - VPN_DNS_ADDRESS=100.64.0.7
+      - WIREGUARD_ALLOWED_IPS=0.0.0.0/0,::0/0      
     restart: unless-stopped
   
   qbittorrent:
@@ -64,7 +64,7 @@ services:
       - ./qbittorrent:/config
       - ./downloads:/downloads
     restart: unless-stopped
-
+# cloudFlare solver
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
@@ -86,7 +86,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.jellyfin.rule=Host(`meuhfin.home`)"
-      - "traefik.http.routers.jellyfin.entrypoints=web"
+      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin.tls=true"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
       - "traefik.docker.network=proxy"
 
@@ -106,7 +107,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.navidrome.rule=Host(`navidrome.home`)"
-      - "traefik.http.routers.navidrome.entrypoints=web"
+      - "traefik.http.routers.navidrome.entrypoints=websecure"
+      - "traefik.http.routers.navidrome.tls=true"
       - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
       - "traefik.docker.network=proxy"
   #film
@@ -136,7 +138,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.seerr.rule=Host(`seerr.home`)"
-      - "traefik.http.routers.seerr.entrypoints=web"
+      - "traefik.http.routers.seerr.entrypoints=websecure"
+      - "traefik.http.routers.seerr.tls=true"
       - "traefik.http.services.seerr.loadbalancer.server.port=5055"
       - "traefik.docker.network=proxy"
 
@@ -156,9 +159,31 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.musicseerr.rule=Host(`musicseerr.home`)"
-      - "traefik.http.routers.musicseerr.entrypoints=web"
+      - "traefik.http.routers.musicseerr.entrypoints=websecure"
+      - "traefik.http.routers.musicseerr.tls=true"
       - "traefik.http.services.musicseerr.loadbalancer.server.port=8688"
       - "traefik.docker.network=proxy"
+
+  spotdl:
+    build:
+      context: ./spotdl-web
+      dockerfile: Dockerfile
+    image: spotimeuh-spotdl-web:latest
+    environment:
+      ACOUSTID_API_KEY: "BuHbqOZbyo"
+    container_name: spotdl
+    volumes:
+      - /Users/mathieu/docker/spotimeuh/music:/music
+      - ./spotdl-config:/root/.config/spotdl
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.spotdl.rule=Host(`spotdl.home`)
+      - traefik.http.routers.spotdl.entrypoints=websecure
+      - traefik.http.routers.spotdl.tls=true
+      - traefik.http.services.spotdl.loadbalancer.server.port=8800
 
 networks:
   proxy:

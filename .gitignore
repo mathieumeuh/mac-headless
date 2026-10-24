@@ -1,11 +1,26 @@
 # Secrets / environment
 .env
 *.env
+
 pihole/compose.yml
 paperless/docker-compose.yml
 paperless/media-migration
 paperless/data-migration
 spotimeuh/docker-compose.yml
+immich/docker-compose.yml
+traefik/compose.yml
+traefik/certs/acme.json
+traefik/certs/home-key.pem
+traefik/certs/home.pem
+continuwuity/docker-compose.yml
+immich/docker-compose.yml
+spotimeuh/spotdl-web/app.py.bak
+update-error.log
+update.log
+traefik/compose.yml
+
+
+
 # Docker/application data
 postgres/
 data/
@@ -25,6 +40,8 @@ qbittorrent/
 jellyfin/
 navidrome/
 movies/
+spotimeuh/jellyfin.backup/
+immich/postgres.backup/
 
 # OS
 .DS_Store
