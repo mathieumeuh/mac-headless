@@ -403,3 +403,94 @@ Jellyfin
 
 Le téléchargement est isolé derrière **Gluetun/VPN** lorsque qBittorrent est utilisé.
 
+## 🎵 Spotimeuh
+
+**Spotimeuh** est une application web personnelle de téléchargement musical, déployée avec Docker et intégrée à l'infrastructure existante.
+
+### Fonctionnalités
+
+- **Spotify** — téléchargement des morceaux à partir d'URL Spotify via SpotDL.
+- **YouTube** — téléchargement audio via yt-dlp, avec conversion en MP3.
+- **Métadonnées** — enrichissement des fichiers audio avec le titre, l'artiste et l'album lorsque l'identification est possible.
+- **Identification musicale** — utilisation d'AcoustID pour identifier les morceaux à partir de leur empreinte audio, puis de MusicBrainz pour récupérer leurs métadonnées.
+- **Pochettes** — récupération des pochettes d'album depuis Cover Art Archive lorsque disponibles.
+- **Interface web** — lancement et suivi des téléchargements depuis une interface FastAPI.
+
+### Architecture
+
+L'application est exécutée dans un conteneur Docker et utilise le réseau partagé `proxy`.
+
+- **Spotimeuh** — interface web et orchestration des téléchargements.
+- **SpotDL** — téléchargement depuis Spotify.
+- **yt-dlp** — téléchargement depuis YouTube.
+- **AcoustID** — identification des morceaux par empreinte audio.
+- **MusicBrainz** — récupération des informations musicales.
+- **Cover Art Archive** — récupération des pochettes d'album.
+
+Les fichiers sont enregistrés dans un répertoire partagé avec les applications de gestion et de lecture musicale.
+
+Nom DNS local :
+
+```text
+spotdl.home
+```
+
+### Flux de téléchargement
+
+```text
+             Interface Spotimeuh
+                     │
+                     ▼
+              URL fournie
+                     │
+              ┌──────┴──────┐
+              ▼             ▼
+           Spotify       YouTube
+              │             │
+              ▼             ▼
+           SpotDL         yt-dlp
+              │             │
+              └──────┬──────┘
+                     ▼
+               Fichier MP3
+                     │
+                     ▼
+             Identification audio
+                  AcoustID
+                     │
+                     ▼
+                MusicBrainz
+                     │
+                     ▼
+          Métadonnées et pochette
+                     │
+                     ▼
+               Bibliothèque
+                 musicale
+                     │
+              ┌──────┴──────┐
+              ▼             ▼
+          Navidrome      Jellyfin
+```
+
+---
+
+## 💬 Continuity — Serveur Matrix
+
+**Continuity** est le serveur de messagerie basé sur le protocole Matrix, destiné à fournir une infrastructure de communication personnelle et décentralisée.
+
+### Objectifs
+
+- Héberger sa propre infrastructure de messagerie.
+- Permettre les communications via le protocole Matrix.
+- Conserver le contrôle de son infrastructure et de ses données.
+- Intégrer le service à l'environnement d'auto-hébergement existant.
+
+### Intégration à l'infrastructure
+
+Continuity complète les applications déployées sur le MacBook Pro headless.
+
+L'architecture réseau et les modalités d'accès dépendent de la configuration effective du serveur Matrix.
+
+---
+
